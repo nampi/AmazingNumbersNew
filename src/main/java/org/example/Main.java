@@ -2,11 +2,12 @@ package org.example;
 
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 import java.util.ArrayList;
 
 class MyNumber {
-    String x;
+    String x; // all fields should ve private final
     Long num;
     boolean even;
     boolean odd;
@@ -25,7 +26,7 @@ class MyNumber {
         this.x = x;
         this.num = Long.parseLong(x);
         this.even = getLastDigit() % 2 == 0;
-        this.odd = !this.even;
+        this.odd = !this.even; // do we really need odd variable if even always has the opposite value?
         this.buzz = num % 7 == 0 || getLastDigit() == 7;
         this.duck = x.contains("0");
         this.palindromic = isPalindromic();
@@ -35,7 +36,7 @@ class MyNumber {
         this.square = isSquare(num);
         this.jumping = isJumping();
         this.happy = isHappy();
-        this.sad = !this.happy;
+        this.sad = !this.happy; // do we need to store a duplicate of happy?
     }
 
     public int getLastDigit() {
@@ -60,8 +61,9 @@ class MyNumber {
             return false;
         }
         int divis = getFirstDigit() * 10 + getLastDigit();
-        return Long.parseLong(x) % divis == 0;
+        return Long.parseLong(x) % divis == 0; // you already have num which is Long.parseLong(x)
     }
+
 
     public boolean isSpy() {
         int sum = 0;
@@ -78,6 +80,8 @@ class MyNumber {
 
     public boolean isSquare(long t) {
         double sq = Math.sqrt(t);
+        // will not always work correctly, because even if the sq is a full square of a number, you can get something like Math.sqrt(4) = 2.00001.
+        // It's not correct to compare doubles using == because of how computer represents double values.
         return ((sq - Math.floor(sq)) == 0);
     }
 
@@ -95,6 +99,8 @@ class MyNumber {
         return true;
     }
 
+    // looks like a private method? please check if it's possible to make other mathods private as well.
+    // you should try to make as many methods private as possible.
     public long getNextNum(long n) {
         long nextNum = 0;
         while (n > 0) {
@@ -103,6 +109,7 @@ class MyNumber {
         }
         return nextNum;
     }
+
     public boolean isHappy() {
         long slow = num;
         long fast = getNextNum(num);
@@ -132,6 +139,9 @@ class MyNumber {
 
     public void printShortInfo() {
         System.out.print(x + " is ");
+        // no need to use this. everywhere. you should use it in e.g. constructor if a parameter of constructor has the same name as the class field.
+        // in other cases this. can be omitted.
+        // here you can use ternary operator to simplify the code, like System.out.println(even ? "even" : "odd");
         if (this.even) {
             System.out.print("even");
         } else {
@@ -173,10 +183,40 @@ class MyNumber {
 }
 
 public class Main {
+/*    public interface Checkable {
+        boolean check(MyNumber num);
+    }
+
+    private static boolean check(Collection<String> users, String param, Checkable check) {
+        return users.contains(param) && check.check() || users.contains("-" + param) && !check.check();
+    }
+
+    private enum Params {
+        EVEN(num -> !num.even),
+*//*        ODD,
+        BUZZ,
+        DUCK,
+        PALINDROMIC,
+        SPY,
+        GAPFUL,
+        SUNNY,
+        SQUARE,
+        JUMPING,
+        HAPPY,
+        SAD*//*;
+
+        private final Checkable check;
+
+        Params(Checkable check) {
+            this.check = check;
+        }
+    }
+    */
+
     public static void main(String[] args) {
         welcome();
         Scanner scanner = new Scanner(System.in);
-        while (true) {
+        while (true) { // I suggest splitting this code in small static methods
             System.out.println("Enter a request:");
             String x = scanner.nextLine();
             String[] result = x.split(" ");
@@ -191,23 +231,27 @@ public class Main {
                     System.out.println("The first parameter should be a natural number or zero.");
                 }
             } else {
-                long startNumber = Long.parseLong(result[0]);
+                long startNumber = Long.parseLong(result[0]); // is it OK to throw an exception if the first or second param is not a number?
                 int count = Integer.parseInt(result[1]);
                 if (count <= 0) {
                     System.out.println("The second parameter should be a natural number.");
                     continue;
                 }
-                ArrayList<String> users = new ArrayList<String>();
+                Collection<String> users = new ArrayList<>(); // you can just use diamond operator (<>), no need to specify type
+                // not good to do this in a cycle, because it leads to O(N^2) complexity - better to put all in Set. I don't think you need an order here
+
                 for (int i = 2; i < result.length; i++) {
                     if (!users.contains(result[i].toUpperCase())) {
                         users.add(result[i].toUpperCase());
                     }
                 }
 
-
+                // let's make it a class constant field: private static final PROPERTIES and store them in UPPER case to avoid doing toLowerCase in a loop below
+                // also better to make it a Set<String> and check .contains instead of looping for each user-defined property
                 String[] properties = {"buzz", "duck", "palindromic",
                         "gapful", "spy", "even", "odd", "sunny", "square", "jumping",
                         "happy", "sad"};
+                //                 ArrayList<String> incorrect = new ArrayList<String>(); // when you create a collection it's better to use the most generic interface as a type, e.g. List<String> or even Collection<String>
                 ArrayList<String> incorrect = new ArrayList<String>();
                 for (String user: users) {
                     boolean correct = false;
@@ -237,10 +281,17 @@ public class Main {
                         System.out.println("The properties [" +
                                 incor.substring(0, incor.length() - 2) + "] are wrong.");
                     }
+
+                    // instead of writing all properties again in the, better to use PROPERTIES constant and join all elements in it with ', ' separator
                     System.out.println("Available properties: [BUZZ, DUCK, PALINDROMIC, " +
                             "GAPFUL, SPY, EVEN, ODD, SUNNY, SQUARE, JUMPING, HAPPY, SAD]");
                     continue;
                 }
+
+                // you may create a constant Set or Pair<String, String> of mutually exclusive properties,
+                // then just iterate over this set and check
+                // if (users.contains(pair.first) && users.contains(pair.second) || users.contains("-" + user)) { print error message and continue; }
+                // also, this code could go in the else section of the below if-else clause
 
                 if (users.size() > 0) {
                     boolean flag = false;
@@ -283,6 +334,7 @@ public class Main {
                 }
 
                 System.out.println();
+                //                 if (users.size() == 0) { // I think we can simplify the code and avoid this branch at all by making the else branch working with empty users properties set
                 if (users.size() == 0) {
                     for (int i = 0; i < count; i++) {
                         MyNumber num = new MyNumber(Long.toString(startNumber + i));
@@ -293,6 +345,24 @@ public class Main {
                     while (count > 0) {
                         MyNumber num = new MyNumber(Long.toString(startNumber + i));
                         i++;
+
+                        // here I think we can use similar approach to simplify the code. store a map from a String to Predicate (lambda function)
+                        // here just iterate of the map entries and check users.contains(entry.key) && predicate() || users.contains("-" + entry.key) && !predicate()
+/*                        if (check(users, "EVEN", () -> !num.even) ||
+                                check(users, "ODD", () -> !num.odd) ||
+                                check(users, "BUZZ", () -> !num.buzz) ||
+                                check(users, "DUCK", () -> !num.duck) ||
+                                check(users, "PALINDROMIC", () -> !num.palindromic) ||
+                                check(users, "SPY", () -> !num.spy) ||
+                                check(users, "GAPFUL", () -> !num.gapful) ||
+                                check(users, "SUNNY", () -> !num.sunny) ||
+                                check(users, "SQUARE", () -> !num.square) ||
+                                check(users, "JUMPING", () -> !num.jumping) ||
+                                check(users, "HAPPY", () -> !num.happy) ||
+                                check(users, "SAD", () -> !num.sad)
+                        ) {
+                            continue;
+                        }*/
                         if (users.contains("EVEN") && !num.even) {
                             continue;
                         }
