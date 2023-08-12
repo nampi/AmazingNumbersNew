@@ -1,70 +1,113 @@
 package org.example;
 
-
-import java.util.Collection;
-import java.util.Scanner;
-import java.util.ArrayList;
+// TODO optimize import *
+// style for java
+// tabs vs spaces
+// how many spaces
+// where to put {
+// @Test myTest or put @Test one line above
+// One file - one class? Do I need to move MyNumber in a separate file?
+import java.util.*;
+import java.util.stream.Stream;
+// TODO I see no libraries found for javafx
+// import javafx.util.Pair;
 
 class MyNumber {
-    String x; // all fields should ve private final
-    Long num;
-    boolean even;
-    boolean odd;
-    boolean buzz;
-    boolean duck;
-    boolean palindromic;
-    boolean gapful;
-    boolean spy;
-    boolean sunny;
-    boolean square;
-    boolean jumping;
-    boolean happy;
-    boolean sad;
+
+    // TODO can't it be const?
+    public enum PARAMS {
+        EVEN,
+        ODD,
+        BUZZ,
+        DUCK,
+        PALINDROMIC,
+        SPY,
+        GAPFUL,
+        SUNNY,
+        SQUARE,
+        JUMPING,
+        HAPPY,
+        SAD;
+        public String toLowerCase() {
+            return this.name().toLowerCase();
+        }
+    }
+
+    private final String numStr;
+    private final Long num;
+
+    // all fields should be private final
+    // what about set?
+    Set<PARAMS> params = new HashSet<>();
 
     public MyNumber(String x) {
-        this.x = x;
-        this.num = Long.parseLong(x);
-        this.even = getLastDigit() % 2 == 0;
-        this.odd = !this.even; // do we really need odd variable if even always has the opposite value?
-        this.buzz = num % 7 == 0 || getLastDigit() == 7;
-        this.duck = x.contains("0");
-        this.palindromic = isPalindromic();
-        this.gapful = isGapful();
-        this.spy = isSpy();
-        this.sunny = isSquare(num + 1);
-        this.square = isSquare(num);
-        this.jumping = isJumping();
-        this.happy = isHappy();
-        this.sad = !this.happy; // do we need to store a duplicate of happy?
+        numStr = x;
+        num = Long.parseLong(numStr);
+
+        if (getLastDigit() % 2 == 0) {
+            params.add(PARAMS.EVEN);
+        } else {
+            params.add(PARAMS.ODD);
+        }
+        if (num % 7 == 0 || getLastDigit() == 7) {
+            params.add(PARAMS.BUZZ);
+        }
+        if (numStr.contains("0")) {
+            params.add(PARAMS.DUCK);
+        }
+        if (isPalindromic()) {
+            params.add(PARAMS.PALINDROMIC);
+        }
+        if (isGapful()) {
+            params.add(PARAMS.GAPFUL);
+        }
+        if (isSpy()) {
+            params.add(PARAMS.SPY);
+        }
+        if (isSquare(num + 1)) {
+            params.add(PARAMS.SUNNY);
+        }
+        if (isSquare(num)) {
+            params.add(PARAMS.SQUARE);
+        }
+        if (isJumping()) {
+            params.add(PARAMS.JUMPING);
+        }
+        if (isHappy()) {
+            params.add(PARAMS.HAPPY);
+        } else {
+            params.add(PARAMS.SAD);
+        }
+
     }
 
-    public int getLastDigit() {
-        return Character.getNumericValue(x.charAt(x.length() - 1));
+    private int getLastDigit() {
+        return Character.getNumericValue(numStr.charAt(numStr.length() - 1));
     }
 
-    public int getFirstDigit() {
-        return Character.getNumericValue(x.charAt(0));
+    private int getFirstDigit() {
+        return Character.getNumericValue(numStr.charAt(0));
     }
 
-    public boolean isPalindromic() {
-        for (int i = 0, j = x.length() - 1; i < j; i++, j--) {
-            if (x.charAt(i) != x.charAt(j)) {
+    private boolean isPalindromic() {
+        for (int i = 0, j = numStr.length() - 1; i < j; i++, j--) {
+            if (numStr.charAt(i) != numStr.charAt(j)) {
                 return false;
             }
         }
         return true;
     }
 
-    public boolean isGapful() {
-        if (x.length() < 3) {
+    private boolean isGapful() {
+        if (numStr.length() < 3) {
             return false;
         }
         int divis = getFirstDigit() * 10 + getLastDigit();
-        return Long.parseLong(x) % divis == 0; // you already have num which is Long.parseLong(x)
+        return num % divis == 0;
     }
 
 
-    public boolean isSpy() {
+    private boolean isSpy() {
         int sum = 0;
         int multi = 1;
         long cur = num;
@@ -77,20 +120,21 @@ class MyNumber {
         return sum == multi;
     }
 
-    public boolean isSquare(long t) {
-        double sq = Math.sqrt(t);
-        // will not always work correctly, because even if the sq is a full square of a number, you can get something like Math.sqrt(4) = 2.00001.
-        // It's not correct to compare doubles using == because of how computer represents double values.
-        return ((sq - Math.floor(sq)) == 0);
+    private boolean isSquare(long t) {
+        double sqrt = Math.sqrt(t);
+        // should it be const?
+        double epsilon = 0.000001d;
+
+        return Math.abs(sqrt - Math.floor(sqrt)) < epsilon;
     }
 
-    public boolean isJumping() {
-        if (x.length() == 1) {
+    private boolean isJumping() {
+        if (numStr.length() == 1) {
             return true;
         }
-        for (int i = 0; i < x.length() - 1; i++) {
-            int cur = Character.getNumericValue(x.charAt(i));
-            int next = Character.getNumericValue(x.charAt(i + 1));
+        for (int i = 0; i < numStr.length() - 1; i++) {
+            int cur = Character.getNumericValue(numStr.charAt(i));
+            int next = Character.getNumericValue(numStr.charAt(i + 1));
             if (Math.abs(cur - next) != 1) {
                 return false;
             }
@@ -98,9 +142,7 @@ class MyNumber {
         return true;
     }
 
-    // looks like a private method? please check if it's possible to make other mathods private as well.
-    // you should try to make as many methods private as possible.
-    public long getNextNum(long n) {
+    private long getNextNum(long n) {
         long nextNum = 0;
         while (n > 0) {
             nextNum += (n % 10) * (n % 10);
@@ -109,7 +151,7 @@ class MyNumber {
         return nextNum;
     }
 
-    public boolean isHappy() {
+    private boolean isHappy() {
         long slow = num;
         long fast = getNextNum(num);
         while (fast != 1 && slow != fast) {
@@ -121,338 +163,205 @@ class MyNumber {
     }
 
     public void printInfo() {
-        System.out.println("Properties of " + this.x);
-        System.out.println("even: " + this.even);
-        System.out.println("odd: " + this.odd);
-        System.out.println("buzz: " + this.buzz);
-        System.out.println("duck: " + this.duck);
-        System.out.println("palindromic: " + this.palindromic);
-        System.out.println("gapful: " + this.gapful);
-        System.out.println("spy: " + this.spy);
-        System.out.println("sunny: " + this.sunny);
-        System.out.println("square: " + this.square);
-        System.out.println("jumping: " + this.jumping);
-        System.out.println("happy: " + this.happy);
-        System.out.println("sad: " + this.sad);
+        StringBuilder toPrint = new StringBuilder();
+        for (var param : PARAMS.values()) {
+            toPrint.append(param.toLowerCase() + ": " + params.contains(param) + "/n");
+        }
+        System.out.println("Properties of " + numStr + toPrint);
     }
 
     public void printShortInfo() {
-        System.out.print(x + " is ");
-        // no need to use this. everywhere. you should use it in e.g. constructor if a parameter of constructor has the same name as the class field.
-        // in other cases this. can be omitted.
-        // here you can use ternary operator to simplify the code, like System.out.println(even ? "even" : "odd");
-        if (this.even) {
-            System.out.print("even");
-        } else {
-            System.out.print("odd");
-        }
-        if (this.buzz) {
-            System.out.print(", buzz");
-        }
-        if (this.duck) {
-            System.out.print(", duck");
-        }
-        if (this.palindromic) {
-            System.out.print(", palindromic");
-        }
-        if (this.gapful) {
-            System.out.print(", gapful");
-        }
-        if (this.spy) {
-            System.out.print(", spy");
-        }
-        if (this.sunny) {
-            System.out.print(", sunny");
-        }
-        if (this.square) {
-            System.out.print(", square");
-        }
-        if (this.jumping) {
-            System.out.print(", jumping");
-        }
-        if (this.happy) {
-            System.out.print(", happy");
-        }
-        if (this.sad) {
-            System.out.print(", sad");
-        }
-        System.out.println();
+        System.out.println(numStr + " is " + String.join(",", params.toString()));
     }
 
 }
 
 public class Main {
-/*    public interface Checkable {
+    private interface Checkable {
         boolean check(MyNumber num);
     }
 
-    private static boolean check(Collection<String> users, String param, Checkable check) {
-        return users.contains(param) && check.check() || users.contains("-" + param) && !check.check();
+    private static boolean check(Collection<String> users, String param, Checkable check, MyNumber num) {
+        return users.contains(param) && check.check(num) || users.contains("-" + param) && !check.check(num);
     }
 
-    private enum Params {
-        EVEN(num -> !num.even),
-*//*        ODD,
-        BUZZ,
-        DUCK,
-        PALINDROMIC,
-        SPY,
-        GAPFUL,
-        SUNNY,
-        SQUARE,
-        JUMPING,
-        HAPPY,
-        SAD*//*;
-
-        private final Checkable check;
-
-        Params(Checkable check) {
-            this.check = check;
+    private static long parseNum(String x) {
+        long num = 0;
+        try {
+            num = Long.parseLong(x);
+        } catch (Exception e) {
         }
+        return num;
     }
-    */
 
     public static void main(String[] args) {
         welcome();
         Scanner scanner = new Scanner(System.in);
-        while (true) { // I suggest splitting this code in small static methods
+        // I suggest splitting this code in small static methods
+        // TODO how to split them in methods
+        // if first method parse input, then I need to return startNumber, count and users, in this case do I need to
+        // create a structure for it
+        // what is the meaning of TODO?
+        // Do I need to create a jira for it?
+        while (true) {
             System.out.println("Enter a request:");
-            String x = scanner.nextLine();
-            String[] result = x.split(" ");
-            if (result.length == 1) {
-                if (x.equals("0")) {
-                    System.out.println("Goodbye!");
-                    break;
-                } else if (Long.parseLong(x) >= 1) {
-                    MyNumber num = new MyNumber(x);
-                    num.printInfo();
-                } else {
-                    System.out.println("The first parameter should be a natural number or zero.");
-                }
-            } else {
-                long startNumber = Long.parseLong(result[0]); // is it OK to throw an exception if the first or second param is not a number?
-                int count = Integer.parseInt(result[1]);
-                if (count <= 0) {
-                    System.out.println("The second parameter should be a natural number.");
-                    continue;
-                }
-                Collection<String> users = new ArrayList<>(); // you can just use diamond operator (<>), no need to specify type
-                // not good to do this in a cycle, because it leads to O(N^2) complexity - better to put all in Set. I don't think you need an order here
+            String inputStr = scanner.nextLine();
 
-                for (int i = 2; i < result.length; i++) {
-                    if (!users.contains(result[i].toUpperCase())) {
-                        users.add(result[i].toUpperCase());
-                    }
-                }
-
-                // let's make it a class constant field: private static final PROPERTIES and store them in UPPER case to avoid doing toLowerCase in a loop below
-                // also better to make it a Set<String> and check .contains instead of looping for each user-defined property
-                String[] properties = {"buzz", "duck", "palindromic",
-                        "gapful", "spy", "even", "odd", "sunny", "square", "jumping",
-                        "happy", "sad"};
-                //                 ArrayList<String> incorrect = new ArrayList<String>(); // when you create a collection it's better to use the most generic interface as a type, e.g. List<String> or even Collection<String>
-                ArrayList<String> incorrect = new ArrayList<String>();
-                for (String user: users) {
-                    boolean correct = false;
-                    for (String p : properties) {
-                        if (user.toLowerCase().equals(p)) {
-                            correct = true;
-                            break;
-                        }
-                        if (user.toLowerCase().equals("-" + p)) {
-                            correct = true;
-                            break;
-                        }
-                    }
-                    if (!correct) {
-                        incorrect.add(user);
-                    }
-                }
-
-                if (incorrect.size() > 0) {
-                    if (incorrect.size() == 1) {
-                        System.out.println("The property [" + incorrect.get(0).toUpperCase() + "] is wrong.");
-                    } else {
-                        StringBuilder incor = new StringBuilder();
-                        for (String p : incorrect) {
-                            incor.append(p.toUpperCase()).append(", ");
-                        }
-                        System.out.println("The properties [" +
-                                incor.substring(0, incor.length() - 2) + "] are wrong.");
-                    }
-
-                    // instead of writing all properties again in the, better to use PROPERTIES constant and join all elements in it with ', ' separator
-                    System.out.println("Available properties: [BUZZ, DUCK, PALINDROMIC, " +
-                            "GAPFUL, SPY, EVEN, ODD, SUNNY, SQUARE, JUMPING, HAPPY, SAD]");
-                    continue;
-                }
-
-                // you may create a constant Set or Pair<String, String> of mutually exclusive properties,
-                // then just iterate over this set and check
-                // if (users.contains(pair.first) && users.contains(pair.second) || users.contains("-" + user)) { print error message and continue; }
-                // also, this code could go in the else section of the below if-else clause
-
-                if (users.size() > 0) {
-                    boolean flag = false;
-                    if (users.contains("EVEN") && users.contains("ODD")) {
-                        System.out.println("The request contains mutually exclusive properties: [EVEN, ODD].");
-                        flag = true;
-                    }
-                    if (users.contains("-EVEN") && users.contains("-ODD")) {
-                        System.out.println("The request contains mutually exclusive properties: [-EVEN, -ODD].");
-                        flag = true;
-                    }
-                    if (users.contains("DUCK") && users.contains("SPY")) {
-                        System.out.println("The request contains mutually exclusive properties: [DUCK, SPY].");
-                        flag = true;
-                    }
-                    if (users.contains("SQUARE") && users.contains("SUNNY")) {
-                        System.out.println("The request contains mutually exclusive properties: [SQUARE, SUNNY].");
-                        flag = true;
-                    }
-                    if (users.contains("HAPPY") && users.contains("SAD")) {
-                        System.out.println("The request contains mutually exclusive properties: [HAPPY, SAD].");
-                        flag = true;
-                    }
-                    if (users.contains("-HAPPY") && users.contains("-SAD")) {
-                        System.out.println("The request contains mutually exclusive properties: [-HAPPY, -SAD].");
-                        flag = true;
-                    }
-                    for (String user : users) {
-                        if (users.contains("-" + user)) {
-                            System.out.println("The request contains mutually exclusive properties: [" +
-                                    user + ", -" + user + "].");
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag) {
-                        System.out.println("There are no numbers with these properties.");
-                        continue;
-                    }
-                }
-
-                System.out.println();
-                //                 if (users.size() == 0) { // I think we can simplify the code and avoid this branch at all by making the else branch working with empty users properties set
-                if (users.size() == 0) {
-                    for (int i = 0; i < count; i++) {
-                        MyNumber num = new MyNumber(Long.toString(startNumber + i));
-                        num.printShortInfo();
-                    }
-                } else {
-                    int i = 0;
-                    while (count > 0) {
-                        MyNumber num = new MyNumber(Long.toString(startNumber + i));
-                        i++;
-
-                        // here I think we can use similar approach to simplify the code. store a map from a String to Predicate (lambda function)
-                        // here just iterate of the map entries and check users.contains(entry.key) && predicate() || users.contains("-" + entry.key) && !predicate()
-/*                        if (check(users, "EVEN", () -> !num.even) ||
-                                check(users, "ODD", () -> !num.odd) ||
-                                check(users, "BUZZ", () -> !num.buzz) ||
-                                check(users, "DUCK", () -> !num.duck) ||
-                                check(users, "PALINDROMIC", () -> !num.palindromic) ||
-                                check(users, "SPY", () -> !num.spy) ||
-                                check(users, "GAPFUL", () -> !num.gapful) ||
-                                check(users, "SUNNY", () -> !num.sunny) ||
-                                check(users, "SQUARE", () -> !num.square) ||
-                                check(users, "JUMPING", () -> !num.jumping) ||
-                                check(users, "HAPPY", () -> !num.happy) ||
-                                check(users, "SAD", () -> !num.sad)
-                        ) {
-                            continue;
-                        }*/
-                        if (users.contains("EVEN") && !num.even) {
-                            continue;
-                        }
-                        if (users.contains("ODD") && !num.odd) {
-                            continue;
-                        }
-                        if (users.contains("BUZZ") && !num.buzz) {
-                            continue;
-                        }
-                        if (users.contains("DUCK") && !num.duck) {
-                            continue;
-                        }
-                        if (users.contains("PALINDROMIC") && !num.palindromic) {
-                            continue;
-                        }
-                        if (users.contains("SPY") && !num.spy) {
-                            continue;
-                        }
-                        if (users.contains("GAPFUL") && !num.gapful) {
-                            continue;
-                        }
-                        if (users.contains("SUNNY") && !num.sunny) {
-                            continue;
-                        }
-                        if (users.contains("SQUARE") && !num.square) {
-                            continue;
-                        }
-                        if (users.contains("JUMPING") && !num.jumping) {
-                            continue;
-                        }
-                        if (users.contains("HAPPY") && !num.happy) {
-                            continue;
-                        }
-                        if (users.contains("SAD") && !num.sad) {
-                            continue;
-                        }
-                        if (users.contains("-EVEN") && num.even) {
-                            continue;
-                        }
-                        if (users.contains("-ODD") && num.odd) {
-                            continue;
-                        }
-                        if (users.contains("-BUZZ") && num.buzz) {
-                            continue;
-                        }
-                        if (users.contains("-DUCK") && num.duck) {
-                            continue;
-                        }
-                        if (users.contains("-PALINDROMIC") && num.palindromic) {
-                            continue;
-                        }
-                        if (users.contains("-SPY") && num.spy) {
-                            continue;
-                        }
-                        if (users.contains("-GAPFUL") && num.gapful) {
-                            continue;
-                        }
-                        if (users.contains("-SUNNY") && num.sunny) {
-                            continue;
-                        }
-                        if (users.contains("-SQUARE") && num.square) {
-                            continue;
-                        }
-                        if (users.contains("-JUMPING") && num.jumping) {
-                            continue;
-                        }
-                        if (users.contains("-HAPPY") && num.happy) {
-                            continue;
-                        }
-                        if (users.contains("-SAD") && num.sad) {
-                            continue;
-                        }
-                        num.printShortInfo();
-                        count--;
-                    }
-                }
+            if (inputStr.equals("0")) {
+                System.out.println("Goodbye!");
+                break;
             }
+            String[] input = inputStr.split(" ");
+            long startNumber = parseNum(input[0]);
+            if (startNumber < 1) {
+                System.out.println("The first parameter should be a natural number or zero.");
+                continue;
+            }
+
+            if (input.length == 1) {
+                MyNumber num = new MyNumber(inputStr);
+                num.printInfo();
+                continue;
+            }
+
+            long count = parseNum(input[1]);
+            if (count < 1) {
+                System.out.println("The second parameter should be a natural number.");
+                continue;
+            }
+
+            // TODO how to do it?
+            Collection<String> users = new
+                    HashSet<>(Arrays.asList(input).subList(2, input.length).stream().map((x) -> x.toUpperCase()).toList());
+
+            if (hasInvalidProperty(users)) {
+                continue;
+            }
+
+            if (hasExclusiveProperty(users)) {
+                continue;
+            }
+
+            processManyArguments(users, startNumber, count);
         }
     }
 
-    public static void welcome() {
-        System.out.println("Welcome to Amazing Numbers!");
-        System.out.println("");
-        System.out.println("Supported requests:");
-        System.out.println("- enter a natural number to know its properties;");
-        System.out.println("- enter two natural numbers to obtain the properties of the list:");
-        System.out.println("  * the first parameter represents a starting number;");
-        System.out.println("  * the second parameter shows how many consecutive numbers are to be processed;");
-        System.out.println("- two natural numbers and two properties to search for;");
-        System.out.println("- a property preceded by minus must not be present in numbers;");
-        System.out.println("- separate the parameters with one space;");
-        System.out.println("- enter 0 to exit.");
+    private static void processManyArguments(Collection<String> users, long startNumber, long count) {
+        System.out.println();
+        long cur = startNumber;
+        while (count > 0) {
+            MyNumber num = new MyNumber(Long.toString(cur++));
+            if (users.size() > 0) {
+                boolean toSkip = false;
+                // TODO use var or proper name
+                for (var param : MyNumber.PARAMS.values()) {
+                    toSkip |= check(users, param.name(), (x) -> !(x.params.contains(param)), num);
+                    // I don't understand why the lines below are incorrect
+                    //toSkip |= users.contains(param) && !num.params.contains(param);
+                    //toSkip |= users.contains("-" + param) && num.params.contains(param);
+                }
+                if (toSkip) {
+                    continue;
+                }
+            }
+
+            num.printShortInfo();
+            count--;
+        }
+    }
+
+    private static boolean hasInvalidProperty(Collection<String> users) {
+        if (users.isEmpty()) {
+            return false;
+        }
+        // TODO how to create these?
+        Collection<String> allCases =  Stream.of(MyNumber.PARAMS.values()).map(MyNumber.PARAMS::name).toList();
+        Collection<String> allCasesNegative = Stream.of(MyNumber.PARAMS.values()).map(MyNumber.PARAMS::name).map((a) -> "-" + a).toList();
+        ArrayList<String> incorrect = new ArrayList<>();
+        for (String user: users) {
+            boolean correct = false;
+            if (allCases.contains(user) || allCasesNegative.contains(user)) {
+                correct = true;
+            }
+            if (!correct) {
+                incorrect.add(user);
+            }
+        }
+
+        if (incorrect.size() > 0) {
+            if (incorrect.size() == 1) {
+                System.out.println("The property [" + incorrect.get(0).toUpperCase() + "] is wrong.");
+            } else {
+                StringBuilder incor = new StringBuilder();
+                for (String p : incorrect) {
+                    incor.append(p.toUpperCase()).append(", ");
+                }
+                System.out.println("The properties [" +
+                        incor.substring(0, incor.length() - 2) + "] are wrong.");
+            }
+
+            System.out.println("Available properties: [" +
+                    Arrays.stream(MyNumber.PARAMS.values()).toList());
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean hasExclusiveProperty(Collection<String> users) {
+        if (users.isEmpty()) {
+            return false;
+        }
+        // TODO how to import pair
+        String[][] names = {
+                {"EVEN", "ODD"},
+                {"-EVEN", "-ODD"},
+                {"DUCK", "SPY"},
+                {"SQUARE", "SUNNY"},
+                {"HAPPY", "SAD"},
+                {"-HAPPY", "-SAD"},
+
+        };
+
+        if (users.size() > 0) {
+            boolean flag = false;
+            for (var name : names) {
+                if (users.contains(name[0]) && users.contains(name[1])) {
+                    System.out.println("The request contains mutually exclusive properties: [" + name[0] + ", " + name[1] + "].");
+                    flag = true;
+                }
+            }
+            for (String user : users) {
+                if (users.contains("-" + user)) {
+                    System.out.println("The request contains mutually exclusive properties: [" +
+                            user + ", -" + user + "].");
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                System.out.println("There are no numbers with these properties.");
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+    private static void welcome() {
+        // TODO is it good to use text?
+        String text = """
+                Welcome to Amazing Numbers!
+
+                Supported requests:
+                - enter a natural number to know its properties;
+                - enter two natural numbers to obtain the properties of the list:
+                  * the first parameter represents a starting number;
+                  * the second parameter shows how many consecutive numbers are to be processed;
+                - two natural numbers and two properties to search for;
+                - a property preceded by minus must not be present in numbers;
+                - separate the parameters with one space;
+                - enter 0 to exit.""";
+        System.out.println(text);
     }
 }
