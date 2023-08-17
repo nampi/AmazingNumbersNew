@@ -1,21 +1,18 @@
 package org.example;
 
-// TODO optimize import *
-// style for java
-// tabs vs spaces
-// how many spaces
-// where to put {
-// @Test myTest or put @Test one line above
-// One file - one class? Do I need to move MyNumber in a separate file?
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Stream;
 // TODO I see no libraries found for javafx
 // import javafx.util.Pair;
 
 class MyNumber {
 
-    // TODO can't it be const?
-    public enum PARAMS {
+    public enum Params {
         EVEN,
         ODD,
         BUZZ,
@@ -35,49 +32,54 @@ class MyNumber {
 
     private final String numStr;
     private final Long num;
+    private final String info;
+    private final String shortInfo;
 
-    // all fields should be private final
-    // what about set?
-    Set<PARAMS> params = new HashSet<>();
+    private final Set<Params> params = new HashSet<>();
+    public Collection<Params> getParams() {
+        return params;
+    }
 
     public MyNumber(String x) {
         numStr = x;
         num = Long.parseLong(numStr);
 
         if (getLastDigit() % 2 == 0) {
-            params.add(PARAMS.EVEN);
+            params.add(Params.EVEN);
         } else {
-            params.add(PARAMS.ODD);
+            params.add(Params.ODD);
         }
         if (num % 7 == 0 || getLastDigit() == 7) {
-            params.add(PARAMS.BUZZ);
+            params.add(Params.BUZZ);
         }
         if (numStr.contains("0")) {
-            params.add(PARAMS.DUCK);
+            params.add(Params.DUCK);
         }
         if (isPalindromic()) {
-            params.add(PARAMS.PALINDROMIC);
+            params.add(Params.PALINDROMIC);
         }
         if (isGapful()) {
-            params.add(PARAMS.GAPFUL);
+            params.add(Params.GAPFUL);
         }
         if (isSpy()) {
-            params.add(PARAMS.SPY);
+            params.add(Params.SPY);
         }
         if (isSquare(num + 1)) {
-            params.add(PARAMS.SUNNY);
+            params.add(Params.SUNNY);
         }
         if (isSquare(num)) {
-            params.add(PARAMS.SQUARE);
+            params.add(Params.SQUARE);
         }
         if (isJumping()) {
-            params.add(PARAMS.JUMPING);
+            params.add(Params.JUMPING);
         }
         if (isHappy()) {
-            params.add(PARAMS.HAPPY);
+            params.add(Params.HAPPY);
         } else {
-            params.add(PARAMS.SAD);
+            params.add(Params.SAD);
         }
+        info = genInfo();
+        shortInfo = genShortInfo();
 
     }
 
@@ -122,7 +124,6 @@ class MyNumber {
 
     private boolean isSquare(long t) {
         double sqrt = Math.sqrt(t);
-        // should it be const?
         double epsilon = 0.000001d;
 
         return Math.abs(sqrt - Math.floor(sqrt)) < epsilon;
@@ -162,16 +163,24 @@ class MyNumber {
 
     }
 
-    public void printInfo() {
+    private String genInfo() {
         StringBuilder toPrint = new StringBuilder();
-        for (var param : PARAMS.values()) {
+        for (var param : Params.values()) {
             toPrint.append(param.toLowerCase() + ": " + params.contains(param) + "/n");
         }
-        System.out.println("Properties of " + numStr + toPrint);
+        return "\nProperties of " + numStr + toPrint;
+    }
+
+    private String genShortInfo() {
+        return numStr + " is " + String.join(",", params.toString());
+    }
+
+    public void printInfo() {
+        System.out.println(info);
     }
 
     public void printShortInfo() {
-        System.out.println(numStr + " is " + String.join(",", params.toString()));
+        System.out.println(shortInfo);
     }
 
 }
@@ -201,13 +210,12 @@ public class Main {
         // TODO how to split them in methods
         // if first method parse input, then I need to return startNumber, count and users, in this case do I need to
         // create a structure for it
-        // what is the meaning of TODO?
-        // Do I need to create a jira for it?
+
         while (true) {
             System.out.println("Enter a request:");
             String inputStr = scanner.nextLine();
 
-            if (inputStr.equals("0")) {
+            if ("0".equals(inputStr)) {
                 System.out.println("Goodbye!");
                 break;
             }
@@ -254,8 +262,8 @@ public class Main {
             if (users.size() > 0) {
                 boolean toSkip = false;
                 // TODO use var or proper name
-                for (var param : MyNumber.PARAMS.values()) {
-                    toSkip |= check(users, param.name(), (x) -> !(x.params.contains(param)), num);
+                for (var param : MyNumber.Params.values()) {
+                    //toSkip |= check(users, param.name(), (x) -> !(x.getParams().contains(param)), num);
                     // I don't understand why the lines below are incorrect
                     //toSkip |= users.contains(param) && !num.params.contains(param);
                     //toSkip |= users.contains("-" + param) && num.params.contains(param);
@@ -275,8 +283,8 @@ public class Main {
             return false;
         }
         // TODO how to create these?
-        Collection<String> allCases =  Stream.of(MyNumber.PARAMS.values()).map(MyNumber.PARAMS::name).toList();
-        Collection<String> allCasesNegative = Stream.of(MyNumber.PARAMS.values()).map(MyNumber.PARAMS::name).map((a) -> "-" + a).toList();
+        Collection<String> allCases =  Stream.of(MyNumber.Params.values()).map(MyNumber.Params::name).toList();
+        Collection<String> allCasesNegative = Stream.of(MyNumber.Params.values()).map(MyNumber.Params::name).map((a) -> "-" + a).toList();
         ArrayList<String> incorrect = new ArrayList<>();
         for (String user: users) {
             boolean correct = false;
@@ -301,7 +309,7 @@ public class Main {
             }
 
             System.out.println("Available properties: [" +
-                    Arrays.stream(MyNumber.PARAMS.values()).toList());
+                    Arrays.stream(MyNumber.Params.values()).toList());
             return true;
         }
         return false;
