@@ -199,6 +199,45 @@ class MyNumber {
 
 }
 
+class InputStructure {
+    private Collection<String> properties = new ArrayList<>();
+    private long startNumber = 0;
+    private long amountOfNumbers = 0;
+    private Main.Modes mode = Main.Modes.UNKNOWN;
+
+    public Collection<String> getProperties() {
+        return properties;
+    }
+
+    public long getStartNumber() {
+        return startNumber;
+    }
+
+    public long getAmountOfNumbers() {
+        return amountOfNumbers;
+    }
+
+    public Main.Modes getMode() {
+        return mode;
+    }
+
+    public void setProperties(Collection<String> properties) {
+        this.properties = properties;
+    }
+
+    public void setStartNumber(long startNumber) {
+        this.startNumber = startNumber;
+    }
+
+    public void setAmountOfNumbers(long amountOfNumbers) {
+        this.amountOfNumbers = amountOfNumbers;
+    }
+
+    public void setMode(Main.Modes mode) {
+        this.mode = mode;
+    }
+}
+
 public class Main {
     private static long parseNum(String x) {
         long num = 0;
@@ -208,46 +247,6 @@ public class Main {
             System.out.println("Error: invalid input");
         }
         return num;
-    }
-
-
-    public static class InputStructure {
-        private Collection<String> properties = new ArrayList<>();
-        private long startNumber = 0;
-        private long amountOfNumbers = 0;
-        private Modes mode = Modes.UNKNOWN;
-
-        public Collection<String> getProperties() {
-            return properties;
-        }
-
-        public long getStartNumber() {
-            return startNumber;
-        }
-
-        public long getAmountOfNumbers() {
-            return amountOfNumbers;
-        }
-
-        public Modes getMode() {
-            return mode;
-        }
-
-        public void setProperties(Collection<String> properties) {
-            this.properties = properties;
-        }
-
-        public void setStartNumber(long startNumber) {
-            this.startNumber = startNumber;
-        }
-
-        public void setAmountOfNumbers(long amountOfNumbers) {
-            this.amountOfNumbers = amountOfNumbers;
-        }
-
-        public void setMode(Modes mode) {
-            this.mode = mode;
-        }
     }
 
     private static InputStructure processInput(String inputStr) {
