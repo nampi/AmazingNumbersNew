@@ -312,7 +312,11 @@ public class Main {
     }
 
     enum Modes {
-        ONE_NUMBER, MANY_NUMBERS, INVALID, EXIT, UNKNOWN
+        ONE_NUMBER,
+        MANY_NUMBERS,
+        INVALID,
+        EXIT,
+        UNKNOWN
     }
 
     public static void main(String[] args) {
@@ -355,9 +359,9 @@ public class Main {
             boolean print = true;
             if (!properties.isEmpty()) {
                 for (var property : properties) {
-                    print = property.startsWith("-") ?
-                            !num.getParams().contains(MyNumber.Params.valueOf(property.substring(1))) :
-                            num.getParams().contains(MyNumber.Params.valueOf(property));
+                    print = property.startsWith("-")
+                            ? !num.getParams().contains(MyNumber.Params.valueOf(property.substring(1)))
+                            :  num.getParams().contains(MyNumber.Params.valueOf(property));
                     if (!print) {
                         break;
                     }
@@ -395,8 +399,8 @@ public class Main {
         if (incorrectProperties.size() == 1) {
             System.out.println(String.format("The property [%1s] is wrong.", incorrectProperties));
         } else {
-            System.out.println(String.format("The properties [%1s] are wrong.", String.join(", ",
-                    incorrectProperties)));
+            System.out.println(String.format("The properties [%1s] are wrong.",
+                    String.join(", ", incorrectProperties)));
         }
         System.out.println(MyNumber.Params.getAvailablePropertiesInfo());
     }
