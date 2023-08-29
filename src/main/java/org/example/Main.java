@@ -1,10 +1,10 @@
 package org.example;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,58 +12,53 @@ import java.util.stream.Stream;
 
 class MyNumber {
 
-    public enum Params {
-        EVEN,
-        ODD,
-        BUZZ,
-        DUCK,
-        PALINDROMIC,
-        SPY,
-        GAPFUL,
-        SUNNY,
-        SQUARE,
-        JUMPING,
-        HAPPY,
-        SAD;
+    enum Params {
+        EVEN, ODD, BUZZ, DUCK, PALINDROMIC, SPY, GAPFUL, SUNNY, SQUARE, JUMPING, HAPPY, SAD;
 
-        public String toLowerCase() {
+        final static Set<String> PROPERTIES = Stream.of(values()).map(Params::name).collect(Collectors.toSet());
+        final static Set<String> NEGATIVE_PROPERTIES =
+                Stream.of(values()).map(Params::getNegative).collect(Collectors.toSet());
+
+        final static String AVAILABLE_PROPERTIES_INFO =
+                "Available properties: " + Arrays.stream(values()).collect(Collectors.toList());
+
+        static boolean isCorrect(String property) {
+            return PROPERTIES.contains(property) || NEGATIVE_PROPERTIES.contains(property);
+        }
+
+        static String getAvailablePropertiesInfo() {
+            return AVAILABLE_PROPERTIES_INFO;
+        }
+
+        String toLowerCase() {
             return this.name().toLowerCase();
+        }
+
+        String getNegative() {
+            return "-" + this.name();
         }
     }
 
-    private static final String[][] exclusiveProperties = {
-            {"EVEN", "ODD"},
-            {"-EVEN", "-ODD"},
-            {"DUCK", "SPY"},
-            {"SQUARE", "SUNNY"},
-            {"HAPPY", "SAD"},
-            {"-HAPPY", "-SAD"},
-    };
-
-    public static String[][] getExclusiveProperties() {
-        return exclusiveProperties;
-    }
+    private static final String[][] EXCLUSIVE_PROPERTIES = {
+            {Params.EVEN.name(), Params.ODD.name()},
+            {Params.EVEN.getNegative(), Params.ODD.getNegative()},
+            {Params.DUCK.name(), Params.SPY.name()},
+            {Params.SQUARE.name(), Params.SUNNY.name()},
+            {Params.HAPPY.name(), Params.SAD.name()},
+            {Params.HAPPY.getNegative(), Params.SAD.getNegative()},};
 
     private final String numStr;
     private final Long num;
     private final String info;
     private final String shortInfo;
-
     private final Set<Params> params = new HashSet<>();
-
-    public Set<Params> getParams() {
-        return params;
-    }
 
     public MyNumber(long x) {
         num = x;
         numStr = num.toString();
 
-        if (getLastDigit() % 2 == 0) {
-            params.add(Params.EVEN);
-        } else {
-            params.add(Params.ODD);
-        }
+        params.add((getLastDigit() % 2 == 0) ? Params.EVEN : Params.ODD);
+
         if (num % 7 == 0 || getLastDigit() == 7) {
             params.add(Params.BUZZ);
         }
@@ -88,14 +83,18 @@ class MyNumber {
         if (isJumping()) {
             params.add(Params.JUMPING);
         }
-        if (isHappy()) {
-            params.add(Params.HAPPY);
-        } else {
-            params.add(Params.SAD);
-        }
+        params.add(isHappy() ? Params.HAPPY : Params.SAD);
+
         info = genInfo();
         shortInfo = genShortInfo();
+    }
 
+    public static String[][] getExclusiveProperties() {
+        return EXCLUSIVE_PROPERTIES;
+    }
+
+    public Set<Params> getParams() {
+        return params;
     }
 
     private int getLastDigit() {
@@ -124,8 +123,8 @@ class MyNumber {
     }
 
     private boolean isSpy() {
-        int sum = 0;
-        int multi = 1;
+        long sum = 0;
+        long multi = 1;
         long cur = num;
         while (cur > 0) {
             long digit = cur % 10;
@@ -182,11 +181,11 @@ class MyNumber {
         for (var param : Params.values()) {
             toPrint.append(param.toLowerCase()).append(": ").append(params.contains(param)).append("\n");
         }
-        return "\nProperties of " + numStr + "\n" + toPrint;
+        return String.format("%nProperties of %1s%n%2s", numStr, toPrint);
     }
 
     private String genShortInfo() {
-        return numStr + " is " + String.join(",", params.toString());
+        return String.format("%1s is %2s", numStr, String.join(",", params.toString()));
     }
 
     public void printInfo() {
@@ -200,13 +199,51 @@ class MyNumber {
 }
 
 class InputStructure {
-    private Collection<String> properties = new ArrayList<>();
-    private long startNumber = 0;
-    private long amountOfNumbers = 0;
-    private Main.Modes mode = Main.Modes.UNKNOWN;
+    private final Main.Modes mode;
+    private final long startNumber;
+    private final long amountOfNumbers;
+    private final Collection<String> properties;
 
-    public Collection<String> getProperties() {
-        return properties;
+    static class Builder {
+        private Main.Modes mode = Main.Modes.UNKNOWN;
+        private long startNumber = 0;
+        private long amountOfNumbers = 0;
+        private Collection<String> properties = new ArrayList<>();
+
+        public Builder mode(Main.Modes mode) {
+            this.mode = mode;
+            return this;
+        }
+
+        public Builder startNumber(long startNumber) {
+            this.startNumber = startNumber;
+            return this;
+        }
+
+        public Builder amountOfNumbers(long amountOfNumbers) {
+            this.amountOfNumbers = amountOfNumbers;
+            return this;
+        }
+
+        public Builder properties(Collection<String> properties) {
+            this.properties = properties;
+            return this;
+        }
+
+        public InputStructure build() {
+            return new InputStructure(this);
+        }
+    }
+
+    private InputStructure(Builder builder) {
+        mode = builder.mode;
+        startNumber = builder.startNumber;
+        amountOfNumbers = builder.amountOfNumbers;
+        properties = List.copyOf(builder.properties);
+    }
+
+    public Main.Modes getMode() {
+        return mode;
     }
 
     public long getStartNumber() {
@@ -217,24 +254,8 @@ class InputStructure {
         return amountOfNumbers;
     }
 
-    public Main.Modes getMode() {
-        return mode;
-    }
-
-    public void setProperties(Collection<String> properties) {
-        this.properties = properties;
-    }
-
-    public void setStartNumber(long startNumber) {
-        this.startNumber = startNumber;
-    }
-
-    public void setAmountOfNumbers(long amountOfNumbers) {
-        this.amountOfNumbers = amountOfNumbers;
-    }
-
-    public void setMode(Main.Modes mode) {
-        this.mode = mode;
+    public Collection<String> getProperties() {
+        return properties;
     }
 }
 
@@ -250,82 +271,76 @@ public class Main {
     }
 
     private static InputStructure processInput(String inputStr) {
-        InputStructure inputStructure = new InputStructure();
-        if (inputStr.equals("0")) {
+        if ("0".equals(inputStr)) {
             System.out.println("Goodbye!");
-            inputStructure.setMode(Modes.EXIT);
-            return inputStructure;
+            return new InputStructure.Builder()
+                    .mode(Modes.EXIT)
+                    .build();
         }
         String[] input = inputStr.split(" ");
         long startNumber = parseNum(input[0]);
         if (startNumber < 1) {
             System.out.println("The first parameter should be a natural number or zero.");
-            inputStructure.setMode(Modes.INVALID);
-            return inputStructure;
+            return new InputStructure.Builder()
+                    .mode(Modes.INVALID)
+                    .build();
         }
 
-        inputStructure.setStartNumber(startNumber);
         if (input.length == 1) {
-            inputStructure.setMode(Modes.ONE_NUMBER);
-            return inputStructure;
+            return new InputStructure.Builder()
+                    .mode(Modes.ONE_NUMBER)
+                    .startNumber(startNumber)
+                    .build();
         }
 
         long amountOfNumbers = parseNum(input[1]);
         if (amountOfNumbers < 1) {
             System.out.println("The second parameter should be a natural number.");
-            inputStructure.setMode(Modes.INVALID);
-            return inputStructure;
+            return new InputStructure.Builder()
+                    .mode(Modes.INVALID)
+                    .build();
         }
-        inputStructure.setAmountOfNumbers(amountOfNumbers);
 
-        Collection<String> properties = Arrays.stream(Arrays.copyOfRange(input, 2, input.length)).
-                map(String::toUpperCase).collect(Collectors.toSet());
-        inputStructure.setProperties(properties);
-        inputStructure.setMode(Modes.MANY_NUMBERS);
-        return inputStructure;
+        Collection<String> properties = Arrays.stream(Arrays.copyOfRange(input, 2, input.length))
+                .map(String::toUpperCase).collect(Collectors.toSet());
+        return new InputStructure.Builder()
+                .mode(Modes.MANY_NUMBERS)
+                .startNumber(startNumber)
+                .amountOfNumbers(amountOfNumbers)
+                .properties(properties)
+                .build();
     }
 
-    public enum Modes {
-        EXIT,
-        INVALID,
-        ONE_NUMBER,
-        MANY_NUMBERS,
-        UNKNOWN
+    enum Modes {
+        ONE_NUMBER, MANY_NUMBERS, INVALID, EXIT, UNKNOWN
     }
 
     public static void main(String[] args) {
         welcome();
         Scanner scanner = new Scanner(System.in);
-
-        while (true) {
+        boolean isWorking = true;
+        while (isWorking) {
             System.out.println("Enter a request:");
+            InputStructure input = processInput(scanner.nextLine());
 
-            var input = processInput(scanner.nextLine());
-            if (Modes.UNKNOWN.equals(input.getMode())) {
-                System.out.println("Unknown error");
-                break;
+            switch (input.getMode()) {
+                case ONE_NUMBER -> {
+                    MyNumber num = new MyNumber(input.getStartNumber());
+                    num.printInfo();
+                }
+                case MANY_NUMBERS -> {
+                    if (!hasInvalidProperty(input.getProperties()) && !hasExclusiveProperties(input.getProperties())) {
+                        processManyArguments(input);
+                    }
+                }
+                case INVALID -> {
+                }
+                case EXIT -> isWorking = false;
+                case UNKNOWN -> {
+                    System.out.println("Unknown error");
+                    isWorking = false;
+                }
             }
-            if (Modes.EXIT.equals(input.getMode())) {
-                break;
-            }
-            if (Modes.INVALID.equals(input.getMode())) {
-                continue;
-            }
-            if (Modes.ONE_NUMBER.equals(input.getMode())) {
-                MyNumber num = new MyNumber(input.getStartNumber());
-                num.printInfo();
-                continue;
-            }
-
-            if (hasInvalidProperty(input.getProperties())) {
-                continue;
-            }
-
-            if (hasExclusiveProperty(input.getProperties())) {
-                continue;
-            }
-
-            processManyArguments(input);
         }
     }
 
@@ -334,26 +349,25 @@ public class Main {
         var startNumber = input.getStartNumber();
         var amountOfNumbers = input.getAmountOfNumbers();
 
-        System.out.println();
         long curNum = startNumber;
         while (amountOfNumbers > 0) {
             MyNumber num = new MyNumber(curNum++);
-            if (properties.size() > 0) {
-                boolean needSkip = false;
+            boolean print = true;
+            if (!properties.isEmpty()) {
                 for (var property : properties) {
-                    if (property.startsWith("-")) {
-                        needSkip |= num.getParams().contains(MyNumber.Params.valueOf(property.substring(1)));
-                    } else {
-                        needSkip |= !num.getParams().contains(MyNumber.Params.valueOf(property));
+                    print = property.startsWith("-") ?
+                            !num.getParams().contains(MyNumber.Params.valueOf(property.substring(1))) :
+                            num.getParams().contains(MyNumber.Params.valueOf(property));
+                    if (!print) {
+                        break;
                     }
-                }
-                if (needSkip) {
-                    continue;
                 }
             }
 
-            num.printShortInfo();
-            amountOfNumbers--;
+            if (print) {
+                num.printShortInfo();
+                amountOfNumbers--;
+            }
         }
     }
 
@@ -362,13 +376,9 @@ public class Main {
             return false;
         }
 
-        Set<String> allProperties =
-                Stream.of(MyNumber.Params.values()).map(MyNumber.Params::name).collect(Collectors.toSet());
-        Set<String> allNegativeProperties =
-                Stream.of(MyNumber.Params.values()).map(MyNumber.Params::name).map(x -> "-" + x).collect(Collectors.toSet());
         Collection<String> incorrectProperties = new ArrayList<>();
         for (String property : properties) {
-            if (!(allProperties.contains(property) || allNegativeProperties.contains(property))) {
+            if (!MyNumber.Params.isCorrect(property)) {
                 incorrectProperties.add(property);
             }
         }
@@ -376,42 +386,46 @@ public class Main {
         if (incorrectProperties.isEmpty()) {
             return false;
         }
-        if (incorrectProperties.size() == 1) {
-            System.out.println(MessageFormat.format("The property [{0}] is wrong.", incorrectProperties));
-        } else {
-            System.out.println(MessageFormat.format("The properties [{0}] are wrong.",
-                    String.join(", ", incorrectProperties)));
-        }
 
-        System.out.println("Available properties: " + Arrays.stream(MyNumber.Params.values()).toList());
+        printIncorrectPropertiesMessage(incorrectProperties);
         return true;
     }
 
-    private static boolean hasExclusiveProperty(Collection<String> properties) {
+    private static void printIncorrectPropertiesMessage(Collection<String> incorrectProperties) {
+        if (incorrectProperties.size() == 1) {
+            System.out.println(String.format("The property [%1s] is wrong.", incorrectProperties));
+        } else {
+            System.out.println(String.format("The properties [%1s] are wrong.", String.join(", ",
+                    incorrectProperties)));
+        }
+        System.out.println(MyNumber.Params.getAvailablePropertiesInfo());
+    }
+
+    private static boolean hasExclusiveProperties(Collection<String> properties) {
         if (properties.isEmpty()) {
             return false;
         }
 
-        boolean hasExclProperty = false;
         for (var exclPropertyPair : MyNumber.getExclusiveProperties()) {
             if (properties.contains(exclPropertyPair[0]) && properties.contains(exclPropertyPair[1])) {
-                System.out.println(MessageFormat.format("The request contains mutually exclusive properties: [{0}, {1}].",
-                        exclPropertyPair[0], exclPropertyPair[1]));
-                hasExclProperty = true;
+                printExclusivePropertiesMessage(exclPropertyPair[0], exclPropertyPair[1]);
+                return true;
             }
         }
         for (String property : properties) {
             if (properties.contains("-" + property)) {
-                System.out.println(MessageFormat.format("The request contains mutually exclusive properties: [{0}, {1}].",
-                        property, "-" + property));
-                hasExclProperty = true;
+                printExclusivePropertiesMessage(property, "-" + property);
+                return true;
             }
         }
-        if (hasExclProperty) {
-            System.out.println("There are no numbers with these properties.");
-            return true;
-        }
+
         return false;
+    }
+
+    private static void printExclusivePropertiesMessage(String property1, String property2) {
+        System.out.println(String.format("The request contains mutually exclusive properties: [%1s, %2s].",
+                property1, property2));
+        System.out.println("There are no numbers with these properties.");
     }
 
     private static void welcome() {
